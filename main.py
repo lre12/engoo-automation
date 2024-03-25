@@ -22,6 +22,9 @@ def login(driver: WebDriver, email: str, pwd: str) -> WebDriver:
     driver.execute_script("arguments[0].scrollIntoView();", login_button[0])
     login_button[0].send_keys(Keys.ENTER)
     time.sleep(2)
+    driver.execute_script("window.open('about:blank', '_blank');")
+    handles = driver.window_handles
+    driver.switch_to.window(handles[1])
     print("finish login", flush=True)
     return driver
 
