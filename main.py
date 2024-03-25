@@ -31,7 +31,8 @@ def get_reservation_data(driver: WebDriver, tutor_ids: list[str]) -> list[dict]:
         driver.get(f"https://engoo.co.kr/tutors/{tutor_id}")
         time.sleep(2)
         alist = driver.find_elements(by=By.TAG_NAME, value="a")
-        print(alist)
+        tmp_alist = [a.text for a in alist if a.text]
+        print(tmp_alist)
         reservation_data = [a.get_attribute("data-info") for a in alist if a.text == "예약하기"]
         results.append({tutor_id: reservation_data})
 
