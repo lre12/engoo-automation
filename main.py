@@ -9,7 +9,7 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 
 
-def login(driver: WebDriver, email: str, pwd: str):
+def login(driver: WebDriver, email: str, pwd: str) -> WebDriver:
     driver.get('https://engoo.co.kr/app/login')
     time.sleep(5)
     inputs = driver.find_elements(by=By.TAG_NAME, value="input")
@@ -23,6 +23,7 @@ def login(driver: WebDriver, email: str, pwd: str):
     login_button[0].send_keys(Keys.ENTER)
     time.sleep(2)
     print("finish login", flush=True)
+    return driver
 
 
 def get_reservation_data(driver: WebDriver, tutor_ids: list[str]) -> list[dict]:
@@ -61,9 +62,10 @@ def handler(event=None, context=None):
     driver.implicitly_wait(20)
     email = os.environ.get('ENGOO_EMAIL')
     pwd = os.environ.get('ENGOO_PWD')
-    login(driver=driver, email=email, pwd=pwd)
+    driver = login(driver=driver, email=email, pwd=pwd)
+    cookie = driver.get_cookies()
+    print(cookie)
     tutor_ids = os.environ.get('ENGOO_TUTOR_IDS')
-    print(tutor_ids)
     tutor_ids = tutor_ids.split(",")
     reservation_data = get_reservation_data(driver=driver, tutor_ids=tutor_ids)
     print(reservation_data)
