@@ -1,3 +1,4 @@
+import json
 import os
 import time
 
@@ -25,7 +26,6 @@ def login(driver: WebDriver, email: str, pwd: str) -> WebDriver:
     driver.execute_script("window.open('about:blank', '_blank');")
     handles = driver.window_handles
     driver.switch_to.window(handles[1])
-    print("finish login", flush=True)
     return driver
 
 
@@ -35,10 +35,10 @@ def get_reservation_data(driver: WebDriver, tutor_ids: list[str]) -> list[dict]:
         driver.get(f"https://engoo.co.kr/tutors/{tutor_id}")
         time.sleep(2)
         alist = driver.find_elements(by=By.TAG_NAME, value="a")
-        tmp_alist = [a.text for a in alist if a.text]
-        print(tmp_alist)
         reservation_data = [a.get_attribute("data-info") for a in alist if a.text == "예약하기"]
-        results.append({tutor_id: reservation_data})
+        if reservation_data:
+            reservation_data = [json.loads(d) for d in reservation_data]
+            results.append({tutor_id: reservation_data})
 
     return results
 
@@ -66,17 +66,27 @@ def handler(event=None, context=None):
     email = os.environ.get('ENGOO_EMAIL')
     pwd = os.environ.get('ENGOO_PWD')
     driver = login(driver=driver, email=email, pwd=pwd)
-    cookie = driver.get_cookies()
-    print(cookie)
     tutor_ids = os.environ.get('ENGOO_TUTOR_IDS')
     tutor_ids = tutor_ids.split(",")
     reservation_data = get_reservation_data(driver=driver, tutor_ids=tutor_ids)
-    print(reservation_data)
 
     if not reservation_data:
         raise Exception("no slot")
 
-    return reservation_data
+
+    result_text = []
+    for data in reservation_data:
+        id = data.keys()[0]
+        url = f"https://engoo.co.kr/tutors/{id}"
+
+        slot_info_list = []
+        for slot in data[id]:
+            info = f"date: {slot['lesson_date']}\nstart_time: {slot['scheduled_start_time']}"
+            slot_info_list.append(info)
+        slot_infos = "\n\n".join(slot_info_list)
+        result_text.append(f"url : {url} \n\n slot info : {slot_infos}")
+
+    return result_text
 
 
 if __name__=="__main__":
