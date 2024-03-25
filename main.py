@@ -76,15 +76,15 @@ def handler(event=None, context=None):
 
     result_text = []
     for data in reservation_data:
-        id = data.keys()[0]
-        url = f"https://engoo.co.kr/tutors/{id}"
+        for id in data.keys():
+            url = f"https://engoo.co.kr/tutors/{id}"
 
-        slot_info_list = []
-        for slot in data[id]:
-            info = f"date: {slot['lesson_date']}\nstart_time: {slot['scheduled_start_time']}"
-            slot_info_list.append(info)
-        slot_infos = "\n\n".join(slot_info_list)
-        result_text.append(f"url : {url} \n\n slot info : {slot_infos}")
+            slot_info_list = []
+            for slot in data[id]:
+                info = f"date: {slot['lesson_date']}\nstart_time: {slot['scheduled_start_time']}"
+                slot_info_list.append(info)
+            slot_infos = "\n\n".join(slot_info_list)
+            result_text.append(f"url : {url} \n\n slot info : {slot_infos}")
 
     return result_text
 
