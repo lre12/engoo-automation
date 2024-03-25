@@ -1,0 +1,45 @@
+name: Build and Push Docker Image to ECR
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-2
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Build Docker image
+      run: docker build -t ${{ secrets.ECR_URI }}:latest --build-arg ENGOO_EMAIL="${{ secrets.ENGOO_EMAIL }}" --build-arg ENGOO_PWD="${{ secrets.ENGOO_PWD }}" --build-arg=ENGOO_TUTOR_IDS=$ENGOO_TUTOR_IDS .
+      env:
+        ENGOO_TUTOR_IDS: ${{ vars.ENGOO_TUTOR_IDS }}
+
+    - name: Tag Docker image
+      run: docker tag ${{ secrets.ECR_URI }}:latest ${{ steps.login-ecr.outputs.registry }}:latest
+
+    - name: Push Docker image to ECR
+      run: docker push ${{ secrets.ECR_URI }}:latest
+
+    - name: Update Lambda function image
+      run: |
+        aws lambda update-function-code \
+          --function-name engoo-ecr \
+          --image-uri ${{ secrets.ECR_URI }}:latest

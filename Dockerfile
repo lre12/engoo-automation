@@ -1,0 +1,13 @@
+FROM umihico/aws-lambda-selenium-python:latest
+
+ARG ENGOO_EMAIL
+ENV ENGOO_EMAIL=${ENGOO_EMAIL}
+
+ARG ENGOO_PWD
+ENV ENGOO_PWD=${ENGOO_PWD}
+
+ARG ENGOO_TUTOR_IDS
+ENV ENGOO_TUTOR_IDS=${ENGOO_TUTOR_IDS}
+
+COPY main.py ./
+CMD [ "main.handler" ]
